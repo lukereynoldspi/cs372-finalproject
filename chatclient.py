@@ -8,8 +8,9 @@ packet_buffer = b''
 
 def main(argv):
     try:
-        host = argv[1]
-        port = int(argv[2])
+        nickname = argv[1]
+        host = argv[2]
+        port = int(argv[3])
     except:
         usage()
         return 1
