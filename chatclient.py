@@ -17,9 +17,14 @@ def main(argv):
     except:
         usage()
         return 1
+    
+    init_windows()
 
     s = socket.socket()
     s.connect((host, port))
+
+    hello_payload = get_hello_payload(nickname)
+    s.send = hello_payload.encode()
 
     #while True:
 

@@ -15,14 +15,22 @@ def main(argv):
         usage()
         return 1
 
+    print("-----------------------")
+    print("Welcome to the chatroom")
+    print("-----------------------")
+
+    # Makes dict and set for buffers/sockets
+    client_packet_buffers = {}
+    read_sockets = []
+
+    # Appends listener socket to read_sockets
     s = socket.socket()
     s.bind(('', port))
     s.listen()
+    read_sockets.append(s)
 
     while True:
-        print("-----------------------")
-        print("Welcome to the chatroom")
-        print("-----------------------")
+
 
         new_s, connection_info = s.accept()
 
