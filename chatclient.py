@@ -25,5 +25,21 @@ def main(argv):
 
     s.close()
 
+def get_hello_payload(nickname):
+    hello_payload = {
+    "type": "hello",
+    "nick": nickname
+    }
+
+    return json.dumps(hello_payload)
+
+def get_client_chat_payload(message):
+    client_chat_payload = {
+    "type": "chat",
+    "message": message
+    }
+
+    return json.dumps(client_chat_payload)
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
