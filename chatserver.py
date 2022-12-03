@@ -3,6 +3,7 @@ import socket
 import random
 import json
 import threading
+import select
 
 def usage():
     print("usage: chatserver.py port", file=sys.stderr)
@@ -21,7 +22,7 @@ def main(argv):
 
     # Makes dict and set for buffers/sockets
     client_packet_buffers = {}
-    read_sockets = []
+    read_sockets = {}
 
     # Appends listener socket to read_sockets
     s = socket.socket()
@@ -31,12 +32,21 @@ def main(argv):
 
     while True:
 
+        read, _, _ = select.select(read_sockets, {}, {})
+        for soc in read:
+            if s == server_socket: 
+                new_socket, _ = server_socket.accept()
+                print(str(new_socket.getpeername()) + ": connected")
+                socket_set.add(new_socket)
 
-        new_s, connection_info = s.accept()
-
-        print(f"Got connection from {connection_info}")
-
-        new_s.close()
+            # Regular socket, recieves data
+            else:
+                data = s.recv(4096) 
+                if not data:
+                    print(str(s.getpeername()) + ": disconnected") # Disconnects if no more data
+                    socket_set.remove(s)
+                else:
+                    print(str(s.getpeername()) + " " + str(len(data)) + " bytes: " + str(data))
 
 def get_server_chat_payload(nickname, message):
     server_chat_payload = {
