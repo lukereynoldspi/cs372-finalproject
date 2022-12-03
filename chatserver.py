@@ -25,28 +25,26 @@ def main(argv):
     read_sockets = {}
 
     # Appends listener socket to read_sockets
-    s = socket.socket()
-    s.bind(('', port))
-    s.listen()
-    read_sockets.append(s)
+    server_socket = socket.socket()
+    server_socket.bind(('', port))
+    server_socket.listen()
+    read_sockets.add(server_socket)
 
     while True:
 
         read, _, _ = select.select(read_sockets, {}, {})
-        for soc in read:
+        for s in read:
             if s == server_socket: 
                 new_socket, _ = server_socket.accept()
-                print(str(new_socket.getpeername()) + ": connected")
-                socket_set.add(new_socket)
+                read_sockets.add(new_socket)
 
             # Regular socket, recieves data
             else:
                 data = s.recv(4096) 
                 if not data:
-                    print(str(s.getpeername()) + ": disconnected") # Disconnects if no more data
-                    socket_set.remove(s)
+                    read_sockets.remove(s)
                 else:
-                    print(str(s.getpeername()) + " " + str(len(data)) + " bytes: " + str(data))
+                    pass
 
 def get_server_chat_payload(nickname, message):
     server_chat_payload = {
