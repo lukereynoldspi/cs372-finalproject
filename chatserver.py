@@ -42,6 +42,7 @@ def main(argv):
             else:
                 data = s.recv(4096) 
                 if not data:
+                    s.close()
                     read_sockets.remove(s)
                 else:
                     pass

@@ -7,8 +7,6 @@ from chatui import init_windows, read_command, print_message, end_windows
 def usage():
     print("usage: chatclient.py server port", file=sys.stderr)
 
-packet_buffer = b''
-
 def main(argv):
     try:
         nickname = argv[1]
