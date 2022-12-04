@@ -21,22 +21,27 @@ def main(argv):
     s = socket.socket()
     s.connect((host, port))
 
-    sending_thread = threading.Thread(target=runner, args=(name, i + THREAD_COUNT))
-    recieving_thread = threading.Thread(target=runner, args=(name, i + THREAD_COUNT))
+    sending_thread = threading.Thread(target=send_client_input, args=(s, nickname))
+    recieving_thread = threading.Thread(target=recieve_server_output, args=(s))
 
     hello_payload = get_hello_payload(nickname)
     s.send(hello_payload.encode())
 
+    
+def send_client_input(port, nickname):
     while True:
         message = read_command(nickname + "> ")
 
         for letter in message:
             if letter == "/":
                 if message[letter + 1] == "q":
-                    s.close()
+                    port.close()
         else:
             client_chat_payload = get_client_chat_payload(message)
-            s.send(client_chat_payload.encode())
+            port.send(client_chat_payload.encode())
+
+def recieve_server_output(port):
+    pass
 
 
 def get_hello_payload(nickname):
