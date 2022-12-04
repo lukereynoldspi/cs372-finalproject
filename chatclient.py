@@ -22,11 +22,19 @@ def main(argv):
     s.connect((host, port))
 
     hello_payload = get_hello_payload(nickname)
-    s.send = hello_payload.encode()
+    s.send(hello_payload.encode())
 
-    #while True:
+    while True:
+        message = read_command(nickname + "> ")
 
-    s.close()
+        for letter in message:
+            if letter == "/":
+                if message[letter + 1] == "q":
+                    s.close()
+        else:
+            client_chat_payload = get_client_chat_payload(message)
+            s.send(client_chat_payload.encode())
+
 
 def get_hello_payload(nickname):
     hello_payload = {
