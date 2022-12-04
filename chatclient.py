@@ -24,9 +24,16 @@ def main(argv):
     sending_thread = threading.Thread(target=send_client_input, args=(s, nickname))
     recieving_thread = threading.Thread(target=recieve_server_output, args=(s))
 
+    sending_thread.start()
+    recieving_thread.start()
+
+    threads = [sending_thread, recieving_thread]
+
+    for thread in threads:
+        thread.join()
+
     hello_payload = get_hello_payload(nickname)
     s.send(hello_payload.encode())
-
     
 def send_client_input(port, nickname):
     while True:
@@ -41,8 +48,11 @@ def send_client_input(port, nickname):
             port.send(client_chat_payload.encode())
 
 def recieve_server_output(port):
-    pass
-
+    while True:
+        message = json.loads(port.recv(4096).decode())
+        if message["type"] == "chat":
+            pass
+        print_message(message)
 
 def get_hello_payload(nickname):
     hello_payload = {
