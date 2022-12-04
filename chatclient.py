@@ -21,6 +21,9 @@ def main(argv):
     s = socket.socket()
     s.connect((host, port))
 
+    sending_thread = threading.Thread(target=runner, args=(name, i + THREAD_COUNT))
+    recieving_thread = threading.Thread(target=runner, args=(name, i + THREAD_COUNT))
+
     hello_payload = get_hello_payload(nickname)
     s.send(hello_payload.encode())
 
