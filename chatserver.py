@@ -20,15 +20,14 @@ def main(argv):
     print("Welcome to the chatroom")
     print("-----------------------")
 
-    # Makes dict and set for buffers/sockets
+    # Makes dict for buffers
     client_packet_buffers = {}
-    read_sockets = {}
 
     # Appends listener socket to read_sockets
     server_socket = socket.socket()
     server_socket.bind(('', port))
     server_socket.listen()
-    read_sockets.add(server_socket)
+    read_sockets = {server_socket}
 
     while True:
 
@@ -45,7 +44,25 @@ def main(argv):
                     s.close()
                     read_sockets.remove(s)
                 else:
-                    pass
+
+                    chat_payload = json.loads(data.decode())
+                    
+                    if chat_payload["type"] == "hello":
+                        nickname = chat_payload["nick"]
+                        client_packet_buffers[s] = nickname # Adds nickname to packet buffers if joining chatroom
+                        server_output = "*** " + nickname + " has joined the chat"
+                        
+                        print(server_output)
+                        for client in client_packet_buffers:
+                            client.send(server_output.encode())
+
+                    elif chat_payload["type"] == "chat":
+                        nickname = client_packet_buffers[s]
+                        server_output = nickname + ": " + chat_payload["message"]
+
+                        print(server_output)
+                        for client in client_packet_buffers:
+                            client.send(server_output.encode())
 
 def get_server_chat_payload(nickname, message):
     server_chat_payload = {

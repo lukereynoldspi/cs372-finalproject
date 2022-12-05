@@ -20,39 +20,49 @@ def main(argv):
 
     s = socket.socket()
     s.connect((host, port))
+    hello_payload = get_hello_payload(nickname)
+    s.send(hello_payload.encode())
 
     sending_thread = threading.Thread(target=send_client_input, args=(s, nickname))
-    recieving_thread = threading.Thread(target=recieve_server_output, args=(s))
-
-    sending_thread.start()
-    recieving_thread.start()
+    recieving_thread = threading.Thread(target=recieve_server_output, args=(s,), daemon=True)
 
     threads = [sending_thread, recieving_thread]
 
     for thread in threads:
-        thread.join()
+        thread.start()
 
-    hello_payload = get_hello_payload(nickname)
-    s.send(hello_payload.encode())
+    threads[0].join()
+
+    end_windows()
     
 def send_client_input(port, nickname):
     while True:
         message = read_command(nickname + "> ")
 
-        for letter in message:
-            if letter == "/":
+        for letter in range(0, len(message)):
+            if message[letter] == "/":
                 if message[letter + 1] == "q":
                     port.close()
+                    
         else:
             client_chat_payload = get_client_chat_payload(message)
             port.send(client_chat_payload.encode())
 
 def recieve_server_output(port):
     while True:
-        message = json.loads(port.recv(4096).decode())
-        if message["type"] == "chat":
-            pass
-        print_message(message)
+        chat_payload = json.loads(port.recv(4096).decode())
+
+        nickname = chat_payload["nick"]
+        message = chat_payload["message"]
+
+        if chat_payload["type"] == "chat":
+            server_output = nickname + ": " + message
+        elif chat_payload["type"] == "join":
+            server_output = "*** " + nickname + " has joined the chat"
+        elif chat_payload["type"] == "leave":
+            server_output = "*** " + nickname + " has left the chat"
+            
+        print_message(server_output)
 
 def get_hello_payload(nickname):
     hello_payload = {
