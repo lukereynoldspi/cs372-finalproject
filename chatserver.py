@@ -23,7 +23,7 @@ def main(argv):
     print("~~~~~~~~~~~~~~~~~~~~~~~")
 
     # Keeps track of port of clients
-    client_packet_buffers = {}
+    client_ports= {}
 
     # Appends listener socket to read_sockets
     server_socket = socket.socket()
@@ -47,26 +47,27 @@ def main(argv):
                     s.close()
                     read_sockets.remove(s)
                 else:
-
+                    
+                    nickname = ""
                     chat_payload = json.loads(data.decode())
 
                     # Recieves hello payload if user joins
                     if chat_payload["type"] == "hello":
 
                         nickname = chat_payload["nick"]
-                        client_packet_buffers[s] = nickname # Adds nickname to packet buffers if joining chatroom
+                        client_ports[s] = nickname # Adds nickname to packet buffers if joining chatroom
                         server_output = "*** " + nickname + " has joined the chat"
                         print(server_output)
 
                     # Recieves chat payload and displays a message of a client
                     elif chat_payload["type"] == "chat":
-                        nickname = client_packet_buffers[s]
+                        nickname = client_ports[s]
                         server_output = nickname + ": " + chat_payload["message"]
 
                         print(server_output)
                     
                     # Sends server_output to other clients
-                    for client in client_packet_buffers:
+                    for client in client_ports:
                         client.send(data)
 
 # Following methods return json files of types chat, join, and leave
