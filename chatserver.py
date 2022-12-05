@@ -5,6 +5,8 @@ import json
 import threading
 import select
 
+# Half of the code courtesy of previous projects
+
 def usage():
     print("usage: chatserver.py port", file=sys.stderr)
 
@@ -16,11 +18,11 @@ def main(argv):
         usage()
         return 1
 
-    print("-----------------------")
+    print("~~~~~~~~~~~~~~~~~~~~~~~")
     print("Welcome to the chatroom")
-    print("-----------------------")
+    print("~~~~~~~~~~~~~~~~~~~~~~~")
 
-    # Makes dict for buffers
+    # Keeps track of port of clients
     client_packet_buffers = {}
 
     # Appends listener socket to read_sockets
@@ -30,7 +32,8 @@ def main(argv):
     read_sockets = {server_socket}
 
     while True:
-
+        
+        # Uses select to read sockets
         read, _, _ = select.select(read_sockets, {}, {})
         for s in read:
             if s == server_socket: 
@@ -46,24 +49,27 @@ def main(argv):
                 else:
 
                     chat_payload = json.loads(data.decode())
-                    
+
+                    # Recieves hello payload if user joins
                     if chat_payload["type"] == "hello":
+
                         nickname = chat_payload["nick"]
                         client_packet_buffers[s] = nickname # Adds nickname to packet buffers if joining chatroom
                         server_output = "*** " + nickname + " has joined the chat"
-                        
                         print(server_output)
-                        for client in client_packet_buffers:
-                            client.send(server_output.encode())
 
+                    # Recieves chat payload and displays a message of a client
                     elif chat_payload["type"] == "chat":
                         nickname = client_packet_buffers[s]
                         server_output = nickname + ": " + chat_payload["message"]
 
                         print(server_output)
-                        for client in client_packet_buffers:
-                            client.send(server_output.encode())
+                    
+                    # Sends server_output to other clients
+                    for client in client_packet_buffers:
+                        client.send(data)
 
+# Following methods return json files of types chat, join, and leave
 def get_server_chat_payload(nickname, message):
     server_chat_payload = {
     "type": "chat",

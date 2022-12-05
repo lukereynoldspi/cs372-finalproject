@@ -4,6 +4,8 @@ import json
 import threading
 from chatui import init_windows, read_command, print_message, end_windows
 
+# Half of the code courtesy of previous projects
+
 def usage():
     print("usage: chatclient.py server port", file=sys.stderr)
 
@@ -18,13 +20,15 @@ def main(argv):
     
     init_windows()
 
+    # Creates a socket to send hello payload to server
     s = socket.socket()
     s.connect((host, port))
     hello_payload = get_hello_payload(nickname)
     s.send(hello_payload.encode())
 
+    # Creates sending and recieving thread for sending and recieving data
     sending_thread = threading.Thread(target=send_client_input, args=(s, nickname))
-    recieving_thread = threading.Thread(target=recieve_server_output, args=(s,), daemon=True)
+    recieving_thread = threading.Thread(target=recieve_server_output, args=(s,), daemon=True) # Main thread, daemon
 
     threads = [sending_thread, recieving_thread]
 
@@ -35,6 +39,7 @@ def main(argv):
 
     end_windows()
     
+# Sends client input and checks if /q is inputted
 def send_client_input(port, nickname):
     while True:
         message = read_command(nickname + "> ")
@@ -43,19 +48,24 @@ def send_client_input(port, nickname):
             if message[letter] == "/":
                 if message[letter + 1] == "q":
                     port.close()
+                    return "You have quit the chatroom :("
                     
         else:
             client_chat_payload = get_client_chat_payload(message)
             port.send(client_chat_payload.encode())
 
+# Recieves output from server and constructs a message from said data
 def recieve_server_output(port):
     while True:
-        chat_payload = json.loads(port.recv(4096).decode())
+        data = port.recv(4096)
+        chat_payload = json.loads(data.decode())
 
         nickname = chat_payload["nick"]
-        message = chat_payload["message"]
 
-        if chat_payload["type"] == "chat":
+        if chat_payload["type"] == "hello":
+            server_output = ""
+        elif chat_payload["type"] == "chat":
+            message = chat_payload["message"]
             server_output = nickname + ": " + message
         elif chat_payload["type"] == "join":
             server_output = "*** " + nickname + " has joined the chat"
@@ -64,6 +74,7 @@ def recieve_server_output(port):
             
         print_message(server_output)
 
+# Following methods return json files of types hello and chat
 def get_hello_payload(nickname):
     hello_payload = {
     "type": "hello",
